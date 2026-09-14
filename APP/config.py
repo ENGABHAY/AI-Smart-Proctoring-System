@@ -26,14 +26,14 @@ REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 # MODEL
 # ============================================================
 
-MODEL_PATH = os.path.join(MODEL_DIR, "yolo_v1.pt")
+MODEL_PATH = os.path.join(MODEL_DIR, "yolo_v12.pt")
 
 
 # ============================================================
 # PROCESSING SETTINGS
 # ============================================================
 
-PROCESS_FPS = 10
+PROCESS_FPS = 15
 FRAME_INTERVAL = 1 / PROCESS_FPS
 
 SUSPICIOUS_THRESHOLD = 30
