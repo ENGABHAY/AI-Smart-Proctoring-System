@@ -15,11 +15,10 @@ __pycache__/
 *.env
 
 # === Project: sample/test video ===
-testing_vid/
+testing_vid/*
 
 # === Project: generated evidence & results ===
 reports/cheating_evidence/
-reports/*.csv
 
 # NOTE: "Sample images/" is intentionally NOT ignored — kept tracked in git.
 
