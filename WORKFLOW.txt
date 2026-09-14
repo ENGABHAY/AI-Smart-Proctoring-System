@@ -1,0 +1,124 @@
+PROJECT WORKFLOW - VIDEO CAPTURE TO EVIDENCE STORAGE
+======================================================
+
+This describes how a frame moves through the pipeline in APP/, from
+source selection to the final suspicious-records CSV and evidence
+images.
+
+PIPELINE FLOW
+-------------
+
+1. START -> choose source
+   |
+   v
+2. Webcam or Video?
+   - Webcam  -> open_source(0)
+   - Video   -> open_source(video_path)
+   |
+   v
+3. Read frame
+   |
+   v
+4. Frame read OK?
+   - No (end of stream) -> release capture, save any remaining
+     data, STOP
+   - Yes -> continue
+   |
+   v
+5. Cheating already flagged?
+   - Yes -> overlay "CHEATING DETECTED" on frame, skip processing,
+     go back to step 3
+   - No  -> continue
+   |
+   v
+6. FPS gate - has enough time elapsed? (PROCESS_FPS)
+   - No  -> go back to step 3
+   - Yes -> continue
+   |
+   v
+7. detector.py: run YOLO prediction on frame
+   -> counts objects per class: book, cell phone, headphone, person
+   -> tracks highest confidence among suspicious classes
+   |
+   v
+8. suspicion.py: evaluate_suspicion()
+   a) No person in frame?
+      Yes -> suspicious = True, score = 0.90, evidence_eligible = False
+   b) More than 1 person?
+      Yes -> suspicious = True, score = 0.95, evidence_eligible = True
+   c) Suspicious object detected?
+      Yes -> suspicious = True, score = confidence, evidence_eligible = True
+   If none of a/b/c -> not suspicious
+   |
+   v
+9. If suspicious:
+   -> log record (frame_time + object counts)
+   -> if evidence_eligible: buffer frame + score + timestamp as an
+      evidence candidate
+   |
+   v
+10. Annotate + display frame
+    |
+    v
+11. suspicious_count >= SUSPICIOUS_THRESHOLD?
+    - Yes -> mark cheating_detected = True
+             -> evidence_manager.py: save_suspicious_csv()
+                writes reports/suspicious_records.csv
+             -> evidence_manager.py: save_evidence_frames()
+                sorts buffered frames by score, keeps top TOP_N,
+                writes JPGs to reports/cheating_evidence/
+    - No  -> go back to step 3
+
+
+STEP-BY-STEP EXPLANATION
+-------------------------
+
+1. Source selection (main.py)
+   User picks webcam (0) or a video file path; video_source.open_source()
+   opens it with OpenCV.
+
+2. Frame read loop
+   Frames are pulled one at a time until the source ends or the user
+   quits (press Q).
+
+3. Early-exit branch
+   Once cheating has already been flagged, remaining frames just get a
+   "CHEATING DETECTED" overlay and are skipped from further processing.
+
+4. FPS gate (video_source.get_frame_timing)
+   Throttles processing to PROCESS_FPS (currently 10), using wall-clock
+   time for webcam and the video's own elapsed time (CAP_PROP_POS_MSEC)
+   for files.
+
+5. Detection (detector.detect_objects)
+   Runs the YOLO model on the frame, counts instances of book, cell
+   phone, headphone, person, and tracks the highest confidence among
+   suspicious classes.
+
+6. Suspicion scoring (suspicion.evaluate_suspicion)
+   Three rule-based checks, each can raise the score:
+   - No person in frame -> score 0.90, NOT evidence-eligible.
+   - More than one person -> score 0.95, evidence-eligible.
+   - Any suspicious object detected -> score = detection confidence,
+     evidence-eligible.
+
+7. Logging
+   Every suspicious frame's timestamp and object counts are appended to
+   an in-memory list; evidence-eligible frames also get buffered (with
+   the actual frame image) for possible saving.
+
+8. Threshold check
+   Once suspicious_count reaches SUSPICIOUS_THRESHOLD (currently 30),
+   cheating is flagged for the rest of the run.
+
+9. Evidence storage (evidence_manager.py)
+   - save_suspicious_csv writes all logged records to
+     reports/suspicious_records.csv.
+   - save_evidence_frames sorts buffered frames by suspicion score
+     (highest first), keeps the top TOP_N (currently 5), and saves
+     them as JPGs to reports/cheating_evidence/.
+
+10. Cleanup
+    On stream end (or manual quit), the capture is released, the
+    window closed, and any remaining unsaved records/evidence are
+    flushed even if the threshold was never reached.
