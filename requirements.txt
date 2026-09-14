@@ -1,0 +1,11 @@
+# Core dependencies — required to run APP/main.py
+ultralytics
+opencv-python
+pandas
+
+# Notebook-only dependencies — needed for Notebook/object_detection.ipynb
+# (dataset download, training, and visualization), not for running the app
+roboflow
+matplotlib
+pyyaml
+pillow

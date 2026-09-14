@@ -1,0 +1,31 @@
+# === Virtual environment ===
+.venv/
+venv/
+env/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# === Environment / secrets ===
+.env
+*.env
+
+# === Project: sample/test video ===
+testing_vid/
+
+# === Project: generated evidence & results ===
+reports/cheating_evidence/
+reports/*.csv
+
+# NOTE: "Sample images/" is intentionally NOT ignored — kept tracked in git.
+
+# === OS / editor junk ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
