@@ -63,6 +63,12 @@ AI-Smart-Proctoring-System/
 │   └── suspicious_records.csv # suspicious-frame log (generated)
 ├── testing_vid/                # sample test video (ignored in git)
 ├── WORKFLOW.txt                # full pipeline walkthrough
+├── prd.md                      # product requirements
+├── architecture.md             # system architecture
+├── design.md                   # design decisions & rationale
+├── rules.md                    # coding conventions
+├── tasks.md                    # done / open task tracker
+├── memory.md                   # project context & known issues
 └── README.md
 ```
 
